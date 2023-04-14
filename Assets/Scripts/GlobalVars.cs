@@ -13,6 +13,16 @@ public class GlobalVars : MonoBehaviour
     public static bool shielded = true;
     public static bool boosted = true;
 
+    public const String dragonCode = "PUWC";
+    public const String flareCode = "JBBP";
+    public const String meteorCode = "MYFL";
+    public const String pollenCode = "YUTZ";
+    public const String fireCode = "CHPW";
+    public const String shieldCode = "GPGJ";
+    public const String laserCode = "NFDK";
+    public const String speedCode = "TZBL";
+    public const String stableCode = "FWWD";
+
     void Start()
     {
         
