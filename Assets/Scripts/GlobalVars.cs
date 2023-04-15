@@ -1,36 +1,94 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using FirebaseWebGL.Scripts.FirebaseBridge;
 using UnityEngine;
 
 public class GlobalVars : MonoBehaviour
 {
+    public const string dragonCode = "PUWC";
+    public const string flareCode = "JBBP";
+    public const string meteorCode = "MYFL";
+    public const string pollenCode = "YUTZ";
+    public const string fireCode = "CHPW";
+    public const string shieldCode = "GPGJ";
+    public const string laserCode = "NFDK";
+    public const string speedCode = "TZBL";
+
+    public const string stableCode = "FWWD";
+
     // Start is called before the first frame update
-    public static bool aliensFlared = false;
+    public static bool aliensFlared;
 
-    public static bool stabilized = false;
-    public static bool scaly = false;
-    public static bool shielded = true;
-    public static bool boosted = true;
+    public  bool stabilized = false;
+    public  bool scaly = false;
+    public  bool shielded  = false;
+    public  bool boosted = false;
+    public  bool laser = false;
+    public  bool fire = false;
+    public  bool pollen = false;
+    public  bool meteor = false;
+    public  bool flare = false;
 
-    public const String dragonCode = "PUWC";
-    public const String flareCode = "JBBP";
-    public const String meteorCode = "MYFL";
-    public const String pollenCode = "YUTZ";
-    public const String fireCode = "CHPW";
-    public const String shieldCode = "GPGJ";
-    public const String laserCode = "NFDK";
-    public const String speedCode = "TZBL";
-    public const String stableCode = "FWWD";
+    public static bool validcode;
+    public string username;
 
-    void Start()
+    public void Awake()
     {
-        
+        DontDestroyOnLoad(this.gameObject);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void checkCode(string code)
     {
+        validcode = true;
+        switch (code)
+        {
+            case dragonCode:
+                scaly = true;
+                break;
+            case flareCode:
+                aliensFlared = true;
+                break;
+            case meteorCode:
+                meteor = true;
+                break;
+            case pollenCode:
+                pollen = true;
+                break;
+            case fireCode:
+                fire = true;
+                break;
+            case shieldCode:
+                shielded = true;
+                break;
+            case laserCode:
+                laser = true;
+                break;
+            case speedCode:
+                boosted = true;
+                break;
+            case stableCode:
+                stabilized = true;
+                break;
+            default:
+                validcode = false;
+                break;
+        }
+        if (validcode)
+        {
+            //update firebase
+            
+        }
+    }
+    
+    public void packageplayerdata()
+    {
+        GameObject globalref = GameObject.Find("GlobalVars");
+        GlobalVars globalvars = globalref.GetComponent<GlobalVars>();
+        string json = JsonUtility.ToJson(globalvars);
+        print(json);
+    }
+    public void updateplayerdata(string json)
+    {
+        FirebaseFirestore.AddDocument("gameplay", json, username, "DisplayInfo", "DisplayErrorObject");
         
     }
 }

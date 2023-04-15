@@ -1,27 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AlienSpawner : MonoBehaviour
 {
-    [SerializeField] float timeBetween;
-    [SerializeField] GameObject alien;
-    float lastSpawn = 0;
+    [SerializeField] private float timeBetween;
+    [SerializeField] private GameObject alien;
+    private float lastSpawn;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
         if (Time.time > lastSpawn + timeBetween)
         {
             lastSpawn = Time.time;
-            GameObject currBullet = Object.Instantiate(alien, new Vector3(transform.position.x + 6 + Random.Range(-3f, 3f), transform.position.y, transform.position.z), Quaternion.identity);
+            var currBullet = Instantiate(alien,
+                new Vector3(transform.position.x + 6 + Random.Range(-3f, 3f), transform.position.y,
+                    transform.position.z), Quaternion.identity);
         }
     }
 }

@@ -5,50 +5,56 @@ using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] float xSpeed;
-    [SerializeField] float ySpeed;
-    [SerializeField] GameObject bullet;
-    [SerializeField] GameObject fireball;
-    [SerializeField] GameObject meteor;
-    [SerializeField] GameObject pollen;
-    [SerializeField] GameObject flare;
-    [SerializeField] Slider Slider;
+    [SerializeField] private float xSpeed;
+    [SerializeField] private float ySpeed;
+    [SerializeField] private GameObject bullet;
+    [SerializeField] private GameObject fireball;
+    [SerializeField] private GameObject meteor;
+    [SerializeField] private GameObject pollen;
+    [SerializeField] private GameObject flare;
+    [SerializeField] private Slider Slider;
     public int health = 4;
-    private bool canShoot = true;
+    public List<GameObject> playerLasers = new();
     private bool canFireball = true;
+    private bool canFlare = true;
     private bool canMeteor = true;
     private bool canPollen = true;
-    private bool canFlare = true;
+    private bool canShoot = true;
     private float windX = 1;
+
     private float windY = 1;
-    public List<GameObject> playerLasers = new List<GameObject>();
+
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        if( GlobalVars.scaly)
-        {
-            health += 2;
-        }
-        if( GlobalVars.boosted)
+        GameObject globalref = GameObject.Find("GlobalVars");
+        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
+        if (GlobalVars.scaly) health += 2;
+        if (GlobalVars.boosted)
         {
             xSpeed += 2;
             ySpeed += 2;
         }
+
         Slider.maxValue = health;
         Slider.value = health;
-        this.gameObject.transform.GetChild(0).gameObject.SetActive(GlobalVars.boosted);
-        this.gameObject.transform.GetChild(1).gameObject.SetActive(GlobalVars.scaly);
-        this.gameObject.transform.GetChild(2).gameObject.SetActive(GlobalVars.stabilized);
-        this.gameObject.transform.GetChild(3).gameObject.SetActive(GlobalVars.shielded);
+        gameObject.transform.GetChild(0).gameObject.SetActive(GlobalVars.boosted);
+        gameObject.transform.GetChild(1).gameObject.SetActive(GlobalVars.scaly);
+        gameObject.transform.GetChild(2).gameObject.SetActive(GlobalVars.stabilized);
+        gameObject.transform.GetChild(3).gameObject.SetActive(GlobalVars.shielded);
 
         StartCoroutine(changeWind());
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        float xVal = ((Input.GetKey("d") ? xSpeed : 0) - (Input.GetKey("a") ? xSpeed : 0)) * Time.deltaTime;
-        float yVal = ((Input.GetKey("w") ? ySpeed : 0) - (Input.GetKey("s") ? ySpeed : 0)) * Time.deltaTime;
+        GameObject globalref = GameObject.Find("GlobalVars");
+        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
+        GlobalVars.packageplayerdata();
+
+        var xVal = ((Input.GetKey("d") ? xSpeed : 0) - (Input.GetKey("a") ? xSpeed : 0)) * Time.deltaTime;
+        var yVal = ((Input.GetKey("w") ? ySpeed : 0) - (Input.GetKey("s") ? ySpeed : 0)) * Time.deltaTime;
 
         if (!GlobalVars.stabilized)
         {
@@ -56,133 +62,115 @@ public class PlayerMovement : MonoBehaviour
             xVal -= windY * Time.deltaTime;
         }
 
-        if (transform.position.x > -1 && xVal > 0)
-        {
-            xVal = 0;
-        }
+        if (transform.position.x > -1 && xVal > 0) xVal = 0;
         transform.Translate(new Vector3(xVal, yVal, 0));
-
-
-            
     }
 
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        GameObject globalref = GameObject.Find("GlobalVars");
+        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
+        if (col.gameObject.tag == "alienBull")
+        {
+            if (Random.Range(-0f, 3f) > 1 && GlobalVars.shielded)
+            {
+                var currBullet = Instantiate(bullet,
+                    new Vector3(col.transform.position.x, col.transform.position.y, transform.position.z),
+                    Quaternion.identity);
+                currBullet.gameObject.tag = "playerBull";
+            }
+            else
+            {
+                Slider.value -= 1;
+                if (Slider.value == 0) Destroy(gameObject);
+            }
+        }
+    }
 
 
     public void shoot()
     {
-        if (canShoot)
-        {
-            StartCoroutine(shootCooldown());
-        }
+        if (canShoot) StartCoroutine(shootCooldown());
     }
-        public void shootFireball()
+
+    public void shootFireball()
     {
-        if(canFireball)
-        {
-            StartCoroutine(fireballCooldown());
-        }
+        if (canFireball) StartCoroutine(fireballCooldown());
     }
 
     public void shootMeteor()
     {
-        if( canMeteor)
-        {
-            StartCoroutine(meteorCooldown());
-        }
+        if (canMeteor) StartCoroutine(meteorCooldown());
     }
 
     public void shootPollen()
     {
-        if( canPollen)
-        {
-            StartCoroutine(pollenCooldown());
-        }
+        if (canPollen) StartCoroutine(pollenCooldown());
     }
 
     public void shootFlare()
     {
-        if (canFlare)
-        {
-            StartCoroutine(flareCooldown());
-        }
+        if (canFlare) StartCoroutine(flareCooldown());
     }
 
-    IEnumerator changeWind()
+    private IEnumerator changeWind()
     {
-        while( true )
+        while (true)
         {
             windX = Random.Range(2f, -2f);
             windY = Random.Range(2f, -2f);
             yield return new WaitForSeconds(2);
         }
     }
-    IEnumerator shootCooldown()
+
+    private IEnumerator shootCooldown()
     {
         canShoot = false;
-        GameObject currBullet = Object.Instantiate(bullet, new Vector3(transform.position.x + 3f, transform.position.y, transform.position.z), Quaternion.identity);
+        var currBullet = Instantiate(bullet,
+            new Vector3(transform.position.x + 3f, transform.position.y, transform.position.z), Quaternion.identity);
         playerLasers.Add(currBullet);
         currBullet.gameObject.tag = "playerBull";
         yield return new WaitForSeconds(1);
         canShoot = true;
     }
 
-    IEnumerator fireballCooldown()
+    private IEnumerator fireballCooldown()
     {
         canFireball = false;
-        GameObject fireBall = Object.Instantiate(fireball, new Vector3(transform.position.x + 2.5f, transform.position.y, transform.position.z), Quaternion.identity);
+        var fireBall = Instantiate(fireball,
+            new Vector3(transform.position.x + 2.5f, transform.position.y, transform.position.z), Quaternion.identity);
         fireBall.gameObject.tag = "playerBull";
         yield return new WaitForSeconds(5);
-        canFireball=true;
+        canFireball = true;
     }
-    IEnumerator meteorCooldown()
+
+    private IEnumerator meteorCooldown()
     {
         canMeteor = false;
-        GameObject currMeteor = Object.Instantiate(meteor, new Vector3(-1, 7, transform.position.z), Quaternion.identity);
+        var currMeteor = Instantiate(meteor, new Vector3(-1, 7, transform.position.z), Quaternion.identity);
         currMeteor.gameObject.tag = "playerBull";
         yield return new WaitForSeconds(7);
         canMeteor = true;
     }
-    IEnumerator pollenCooldown()
+
+    private IEnumerator pollenCooldown()
     {
         canPollen = false;
-        GameObject pollenBomb = Object.Instantiate(pollen, new Vector3(transform.position.x + 3f, transform.position.y, transform.position.z), Quaternion.identity);
+        var pollenBomb = Instantiate(pollen,
+            new Vector3(transform.position.x + 3f, transform.position.y, transform.position.z), Quaternion.identity);
         pollenBomb.gameObject.tag = "playerBull";
         yield return new WaitForSeconds(1);
-        canPollen=true;
+        canPollen = true;
     }
 
-    IEnumerator flareCooldown()
+    private IEnumerator flareCooldown()
     {
         canFlare = false;
-        GameObject pollenBomb = Object.Instantiate(flare, new Vector3(4.67f, -6.6f, transform.position.z), Quaternion.identity);
+        var pollenBomb = Instantiate(flare, new Vector3(4.67f, -6.6f, transform.position.z), Quaternion.identity);
         GlobalVars.aliensFlared = true;
         yield return new WaitForSeconds(2);
         GlobalVars.aliensFlared = false;
         yield return new WaitForSeconds(3);
         canFlare = true;
     }
-    private void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.gameObject.tag == "alienBull")
-        {
-            if (Random.Range(-0f, 3f) > 1 && GlobalVars.shielded)
-            {
-                GameObject currBullet = Object.Instantiate(bullet, new Vector3(col.transform.position.x, col.transform.position.y, transform.position.z), Quaternion.identity);
-                currBullet.gameObject.tag = "playerBull";
-            }
-            else
-            { 
-                Slider.value -= 1;
-                if (Slider.value == 0)
-                {
-
-                    Destroy(gameObject);
-                }
-            }
-
-        }
-
-    }
-
 }
-
