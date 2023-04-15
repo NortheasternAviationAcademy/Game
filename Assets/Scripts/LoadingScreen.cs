@@ -8,10 +8,11 @@ public class LoadingScreen : MonoBehaviour
     public InputField username;
     public InputField code;
 
+    private GameObject globalVars;
+
 
     private GlobalVars GlobalVars;
 
-    private GameObject globalVars;
     private void Awake()
     {
         // create gameobject to hold global variables
@@ -19,10 +20,12 @@ public class LoadingScreen : MonoBehaviour
         {
             globalVars = new GameObject("GlobalVars");
             globalVars.AddComponent<GlobalVars>();
-        }else
-        {
-            globalVars = GameObject.Find("GlobalVars"); 
         }
+        else
+        {
+            globalVars = GameObject.Find("GlobalVars");
+        }
+
         GlobalVars = globalVars.GetComponent<GlobalVars>();
         if (GlobalVars.username != null)
         {
@@ -35,7 +38,9 @@ public class LoadingScreen : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        GlobalVars.username = username.GetComponent<InputField>().text;
     }
+
     public void startGame()
     {
         GlobalVars.checkCode(code.GetComponent<InputField>().text);
@@ -49,15 +54,11 @@ public class LoadingScreen : MonoBehaviour
                 print("Code: " + code.GetComponent<InputField>().text);
                 // check if the code is valid
                 if (GlobalVars.validcode)
-                {
                     // load the game
                     SceneManager.LoadScene("MainScene");
-                }
                 else
-                {
                     // display error message
                     Debug.Log("Invalid Code");
-                }
             }
             else
             {
@@ -70,7 +71,5 @@ public class LoadingScreen : MonoBehaviour
             // display error message
             Debug.Log("Invalid Username");
         }
-
     }
-    
 }

@@ -1,5 +1,7 @@
-using System;
+using System.Collections.Generic;
 using FirebaseWebGL.Scripts.FirebaseBridge;
+using Newtonsoft.Json;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GlobalVars : MonoBehaviour
@@ -18,24 +20,28 @@ public class GlobalVars : MonoBehaviour
     // Start is called before the first frame update
     public static bool aliensFlared;
 
-    public  bool stabilized = false;
-    public  bool scaly = false;
-    public  bool shielded  = false;
-    public  bool boosted = false;
-    public  bool laser = false;
-    public  bool fire = false;
-    public  bool pollen = false;
-    public  bool meteor = false;
-    public  bool flare = false;
-
     public static bool validcode;
+
+    public bool stabilized;
+    public bool scaly;
+    public bool shielded;
+    public bool boosted;
+    public bool laser;
+    public bool fire;
+    public bool pollen;
+    public bool meteor;
+    public bool flare;
     public string username;
 
+    private string Data;
     public void Awake()
     {
-        DontDestroyOnLoad(this.gameObject);
+        DontDestroyOnLoad(gameObject);
     }
-
+    public void OnRequestSuccess(string data)
+    {
+        Data = data;
+    }
     public void checkCode(string code)
     {
         validcode = true;
@@ -72,23 +78,59 @@ public class GlobalVars : MonoBehaviour
                 validcode = false;
                 break;
         }
+
         if (validcode)
         {
-            //update firebase
-            
+            var json = packageplayerdata();
+            updateplayerdata(json);
         }
     }
-    
-    public void packageplayerdata()
+
+    public string packageplayerdata()
     {
-        GameObject globalref = GameObject.Find("GlobalVars");
-        GlobalVars globalvars = globalref.GetComponent<GlobalVars>();
-        string json = JsonUtility.ToJson(globalvars);
-        print(json);
+        var globalref = GameObject.Find("GlobalVars");
+        var globalvars = globalref.GetComponent<GlobalVars>();
+        var json = JsonUtility.ToJson(globalvars);
+        return json;
     }
+
     public void updateplayerdata(string json)
     {
-        FirebaseFirestore.AddDocument("gameplay", json, username, "DisplayInfo", "DisplayErrorObject");
-        
+        FirebaseFirestore.AddDocument("gameplay", json, this.gameObject.name, "OnRequestSuccess", "DisplayErrorObject");
+    }
+    public void downloadplayerdata()
+    {
+        FirebaseFirestore.GetDocumentsInCollection("gameplay", this.gameObject.name, "OnRequestSuccess", "DisplayErrorObject");
+        print(Data);
+        var parseData = JsonConvert.DeserializeObject<List<GlobalVars>>(Data);
+        print(parseData);
+        foreach (var item in parseData)
+        {
+            if (item.username == username)
+            {
+                scaly = item.scaly;
+                shielded = item.shielded;
+                boosted = item.boosted;
+                laser = item.laser;
+                fire = item.fire;
+                pollen = item.pollen;
+                meteor = item.meteor;
+                flare = item.flare;
+                stabilized = item.stabilized;
+                break;
+            }
+            else
+            {
+                scaly = false;
+                shielded = false;
+                boosted = false;
+                laser = false;
+                fire = false;
+                pollen = false;
+                meteor = false;
+                flare = false;
+                stabilized = false;
+            }
+        }
     }
 }

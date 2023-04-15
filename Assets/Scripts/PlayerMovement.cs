@@ -24,13 +24,15 @@ public class PlayerMovement : MonoBehaviour
 
     private float windY = 1;
 
+    private GlobalVars GlobalVar;
     // Start is called before the first frame update
     private void Start()
     {
-        GameObject globalref = GameObject.Find("GlobalVars");
-        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
-        if (GlobalVars.scaly) health += 2;
-        if (GlobalVars.boosted)
+        GameObject globalvars = GameObject.Find("GlobalVars");
+        GlobalVar = globalvars.GetComponent<GlobalVars>();
+        GlobalVar.downloadplayerdata();
+        if (GlobalVar.scaly) health += 2;
+        if (GlobalVar.boosted)
         {
             xSpeed += 2;
             ySpeed += 2;
@@ -38,25 +40,23 @@ public class PlayerMovement : MonoBehaviour
 
         Slider.maxValue = health;
         Slider.value = health;
-        gameObject.transform.GetChild(0).gameObject.SetActive(GlobalVars.boosted);
-        gameObject.transform.GetChild(1).gameObject.SetActive(GlobalVars.scaly);
-        gameObject.transform.GetChild(2).gameObject.SetActive(GlobalVars.stabilized);
-        gameObject.transform.GetChild(3).gameObject.SetActive(GlobalVars.shielded);
+        gameObject.transform.GetChild(0).gameObject.SetActive(GlobalVar.boosted);
+        gameObject.transform.GetChild(1).gameObject.SetActive(GlobalVar.scaly);
+        gameObject.transform.GetChild(2).gameObject.SetActive(GlobalVar.stabilized);
+        gameObject.transform.GetChild(3).gameObject.SetActive(GlobalVar.shielded);
 
         StartCoroutine(changeWind());
+        
     }
 
     // Update is called once per frame
     private void Update()
     {
-        GameObject globalref = GameObject.Find("GlobalVars");
-        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
-        GlobalVars.packageplayerdata();
 
         var xVal = ((Input.GetKey("d") ? xSpeed : 0) - (Input.GetKey("a") ? xSpeed : 0)) * Time.deltaTime;
         var yVal = ((Input.GetKey("w") ? ySpeed : 0) - (Input.GetKey("s") ? ySpeed : 0)) * Time.deltaTime;
 
-        if (!GlobalVars.stabilized)
+        if (!GlobalVar.stabilized)
         {
             yVal -= windX * Time.deltaTime;
             xVal -= windY * Time.deltaTime;
@@ -68,11 +68,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        GameObject globalref = GameObject.Find("GlobalVars");
-        GlobalVars GlobalVars = globalref.GetComponent<GlobalVars>();
+        var globalref = GameObject.Find("GlobalVar");
+        var GlobalVar = globalref.GetComponent<GlobalVars>();
         if (col.gameObject.tag == "alienBull")
         {
-            if (Random.Range(-0f, 3f) > 1 && GlobalVars.shielded)
+            if (Random.Range(-0f, 3f) > 1 && GlobalVar.shielded)
             {
                 var currBullet = Instantiate(bullet,
                     new Vector3(col.transform.position.x, col.transform.position.y, transform.position.z),
